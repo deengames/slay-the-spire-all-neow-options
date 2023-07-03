@@ -37,16 +37,31 @@ public class NeowRoomPatches {
 
         @SpirePostfixPatch
         public static void Postfix(AbstractEvent e, int buttonPressed) {
+            boolean clearedAll = false;
+
 			try {
 				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
 				screenNumField.setAccessible(true);
 				int sn = screenNumField.getInt(e);
                 System.out.println("***** postfix ***: e=" + e + ", bn=" + buttonPressed + ", umm..." + sn);
+                
+                // quick, cheap, and dirty. real dirty.
+                while (!clearedAll)
+                {
+                    try {
+                        e.roomEventText.removeDialogOption(0);
+                    } catch (Exception eee) {
+                    // repeat after me: "exceptions are for exceptional cases" ... :S
+                    clearedAll = true;
+                    }
+                } 
+
                 e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
                 e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
                 e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
                 e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
-			} catch (Exception ex) {
+			
+            } catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
