@@ -12,6 +12,7 @@ import com.megacrit.cardcrawl.events.AbstractEvent;
 import com.megacrit.cardcrawl.neow.NeowEvent;
 import com.megacrit.cardcrawl.neow.NeowReward;
 import com.megacrit.cardcrawl.neow.NeowReward.NeowRewardDef;
+import com.megacrit.cardcrawl.neow.NeowReward.NeowRewardDrawback;
 import com.megacrit.cardcrawl.neow.NeowReward.NeowRewardType;
 import com.megacrit.cardcrawl.neow.NeowRoom;
 
@@ -29,8 +30,8 @@ public class NeowRoomPatches {
 		@SpirePostfixPatch
 		public static void Postfix(NeowRoom room, boolean b) {
             pageNumber = 0;
-			room.event.roomEventText.addDialogOption("[All Neow Options 1]");
-            room.event.roomEventText.addDialogOption("[All Neow Options 2]");
+			room.event.roomEventText.addDialogOption("[All Neow Options 1/2]");
+            room.event.roomEventText.addDialogOption("[All Neow Options 2/2]");
 		}
 	}
 
@@ -44,7 +45,6 @@ public class NeowRoomPatches {
 				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
 				screenNumField.setAccessible(true);
 				int sn = screenNumField.getInt(e);
-            System.out.println("**************** @@@@@@@@@@ ?????????????????? bn=" + buttonPressed + " sn=" + sn);
 
                 if (sn == 3)
                 {
@@ -52,6 +52,13 @@ public class NeowRoomPatches {
                     showNeowOptions(e);
                 } else { // sn == 99
                     System.out.println("**************** activate option " + buttonPressed + " on page " + pageNumber);
+                    int rewardIndex = (pageNumber * ITEMS_PER_PAGE) + buttonPressed;
+                    
+                    NeowRewardDef def = getRewardOptions().get(rewardIndex);
+                    NeowReward reward = defToReward(def);
+                    reward.activate();
+
+                    buttonPressed = 0; // ???
                 }
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -63,6 +70,7 @@ public class NeowRoomPatches {
             NeowReward toReturn = new NeowReward(true);
             toReturn.optionLabel = def.desc;
             toReturn.type = def.type;
+            toReturn.drawback = NeowRewardDrawback.NONE;
             return toReturn;
         }
 
