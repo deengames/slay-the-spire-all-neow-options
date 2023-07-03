@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePrefixPatch;
+import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.events.AbstractEvent;
 import com.megacrit.cardcrawl.events.RoomEventDialog;
 import com.megacrit.cardcrawl.neow.NeowEvent;
@@ -34,13 +35,33 @@ public class NeowRoomPatches {
 			}
 		}
 
+        @SpirePostfixPatch
+        public static void Postfix(AbstractEvent e, int buttonPressed) {
+			try {
+				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
+				screenNumField.setAccessible(true);
+				int sn = screenNumField.getInt(e);
+                System.out.println("***** postfix ***: e=" + e + ", bn=" + buttonPressed + ", umm..." + sn);
+                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
+                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
+                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
+                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}
+
+        // screenNum = 0, 1 or 2 mean talk option
+	    // 10 is only ok for trial (Custom Mode) I think
+        private static boolean acceptableScreenNum(int sn) {
+            return sn == 0 || sn == 1 || sn == 2 || (Settings.isTrial && sn == 10);
+        }
+
         private static void onClick(AbstractEvent e, int buttonPressed, Field screenNumField, int sn) throws IllegalAccessException {
 
             System.out.println("Hello, onClick. e=" + e + ", button=" + buttonPressed + ", sn=" + sn);
-            if (buttonPressed == 1 && sn == 1)
+            if (buttonPressed == 1 && acceptableScreenNum(sn))
             {
-                e.roomEventText.clear();
-                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
             }
             else
             {
