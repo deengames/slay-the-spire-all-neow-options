@@ -39,7 +39,13 @@ public class NeowRoomPatches {
 				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
 				screenNumField.setAccessible(true);
 				int sn = screenNumField.getInt(e);
-				onClick(e, buttonPressed, screenNumField, sn);
+
+                System.out.println("**************** bn=" + buttonPressed + " and sn=" + sn);
+
+                if ((buttonPressed == 1 || buttonPressed == 2) && acceptableScreenNum(sn))
+                {
+                    showNeowOptions(buttonPressed - 1, e);
+                }
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -53,43 +59,36 @@ public class NeowRoomPatches {
             return toReturn;
         }
 
-        @SpirePostfixPatch
-        public static void Postfix(AbstractEvent e, int buttonPressed) {
-            System.out.println("******* postfix: " + buttonPressed);
-            try {
-                Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
-                screenNumField.setAccessible(true);
-                int sn = screenNumField.getInt(e);
-                System.out.println("PPOSTFIX: sn=" + sn);
-                
-                boolean clearedAll = false;
-
-                if ((buttonPressed == 1 || buttonPressed == 2) && acceptableScreenNum(sn))
-                {
-                    // quick, cheap, and dirty. real dirty.
-                    while (!clearedAll)
-                    {
-                        try {
-                            e.roomEventText.removeDialogOption(0);
-                        } catch (Exception eee) {
-                        // repeat after me: "exceptions are for exceptional cases" ... :S
-                        clearedAll = true;
-                        }
-                    } 
-
-                    ArrayList<NeowRewardDef> rewardOptions = getRewardOptions();
-                    int pageNum = buttonPressed == 1 ? 0 : 1;
-
-                    for (int i = 0; i < ITEMS_PER_PAGE; i++)
-                    {
-                        int itemIndex = (pageNum * ITEMS_PER_PAGE) + i;
-                        NeowRewardDef def = rewardOptions.get(i);
-                        NeowReward reward = defToReward(def);
-                        e.roomEventText.addDialogOption(reward.optionLabel);
-                    }
+        private static void clearAllOptions(AbstractEvent e) {
+            boolean clearedAll = false;
+            // quick, cheap, and dirty. real dirty.
+            while (!clearedAll)
+            {
+                try {
+                    e.roomEventText.removeDialogOption(0);
+                } catch (Exception eee) {
+                // repeat after me: "exceptions are for exceptional cases" ... :S
+                clearedAll = true;
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } 
+        }
+
+        private static void showNeowOptions(int pageNum, AbstractEvent e) {
+            clearAllOptions(e);
+            ArrayList<NeowRewardDef> rewardOptions = getRewardOptions();
+
+            for (int i = 0; i < ITEMS_PER_PAGE; i++)
+            {
+                int itemIndex = (pageNum * ITEMS_PER_PAGE) + i;
+                if (itemIndex >= rewardOptions.size())
+                {
+                    break;
+                }
+
+                NeowRewardDef def = rewardOptions.get(i);
+                NeowReward reward = defToReward(def);
+                e.roomEventText.addDialogOption(reward.optionLabel);
+                System.out.println("?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!");
             }
 		}
 
@@ -100,19 +99,9 @@ public class NeowRoomPatches {
             return sn == 0 || sn == 1 || sn == 2 || (Settings.isTrial && sn == 10);
         }
 
-        private static void onClick(AbstractEvent e, int buttonPressed, Field screenNumField, int sn) throws IllegalAccessException {
-
-            System.out.println("Hello, onClick. e=" + e + ", button=" + buttonPressed + ", sn=" + sn);
-            if (buttonPressed == 1 && acceptableScreenNum(sn))
-            {
-            }
-            else
-            {
-                // screenNum = 99 is the default value for leave event. This
-                // calls openMap, which is patched to start a BetterRewards
-                screenNumField.setInt(e, 99);
-            }
-        }
+        // screenNum = 99 is the default value for leave event. This
+        // calls openMap, which is patched to start a BetterRewards
+        // screenNumField.setInt(e, 99);
 
         private static ArrayList<NeowRewardDef> getRewardOptions()
         {
