@@ -13,12 +13,13 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.localization.CharacterStrings;
 import com.megacrit.cardcrawl.neow.NeowEvent;
 import com.megacrit.cardcrawl.neow.NeowReward;
-import com.megacrit.cardcrawl.neow.NeowRoom;
 import com.megacrit.cardcrawl.neow.NeowReward.NeowRewardDef;
 import com.megacrit.cardcrawl.neow.NeowReward.NeowRewardType;
 
 @SpirePatch(clz=NeowEvent.class, method="talk")
 public class NeowEventPatches {
+
+	private static boolean ranUpdateLogic = false;
 
     private static NeowEvent event; // current event
 	
@@ -45,6 +46,16 @@ public class NeowEventPatches {
 			{
 				System.out.println("Reward " + (i + 1) + ": " + rewardOptions.get(i));
 			}
+		}
+	}
+
+	@SpirePrefixPatch
+	private static void update(NeowEvent __instance)
+	{
+		if (!ranUpdateLogic)
+		{
+			ranUpdateLogic = true;
+			System.out.println("@@@@@ update");
 		}
 	}
 	
