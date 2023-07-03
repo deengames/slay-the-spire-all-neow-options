@@ -89,7 +89,7 @@ public class NeowRoomPatches {
                     break;
                 }
 
-                NeowRewardDef def = rewardOptions.get(i);
+                NeowRewardDef def = rewardOptions.get(itemIndex);
                 NeowReward reward = defToReward(def);
                 e.roomEventText.addDialogOption(reward.optionLabel);
             }
