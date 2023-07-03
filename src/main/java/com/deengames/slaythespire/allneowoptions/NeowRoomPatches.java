@@ -21,12 +21,14 @@ public class NeowRoomPatches {
     public static final String[] TEXT = NeowReward.TEXT;
     public static final int ITEMS_PER_PAGE = 10;
 
-    private static int hpBonus = (int)(AbstractDungeon.player.maxHealth * 0.1F);
+    private static final int hpBonus = (int)(AbstractDungeon.player.maxHealth * 0.1F);
+    private static int pageNumber = 0; // WHICH neow options?
 
     @SpirePatch(clz = com.megacrit.cardcrawl.neow.NeowRoom.class, method = SpirePatch.CONSTRUCTOR, paramtypez = boolean.class)
     public static class AddButton {
 		@SpirePostfixPatch
 		public static void Postfix(NeowRoom room, boolean b) {
+            pageNumber = 0;
 			room.event.roomEventText.addDialogOption("[All Neow Options 1]");
             room.event.roomEventText.addDialogOption("[All Neow Options 2]");
 		}
@@ -38,17 +40,18 @@ public class NeowRoomPatches {
 
 		@SpirePostfixPatch
 		public static void Postfix(AbstractEvent e, int buttonPressed) {
-            System.out.println("**************** @@@@@@@@@@ ??????????????????");
 			try {
 				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
 				screenNumField.setAccessible(true);
 				int sn = screenNumField.getInt(e);
+            System.out.println("**************** @@@@@@@@@@ ?????????????????? bn=" + buttonPressed + " sn=" + sn);
 
-                System.out.println("**************** bn=" + buttonPressed + " and sn=" + sn);
-
-                if ((buttonPressed == 1 || buttonPressed == 2) && (acceptableScreenNum(sn) || sn == 3))
+                if (sn == 3)
                 {
-                    showNeowOptions(buttonPressed - 1, e);
+                    pageNumber = buttonPressed - 1;
+                    showNeowOptions(e);
+                } else { // sn == 99
+                    System.out.println("**************** activate option " + buttonPressed + " on page " + pageNumber);
                 }
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -77,13 +80,13 @@ public class NeowRoomPatches {
             } 
         }
 
-        private static void showNeowOptions(int pageNum, AbstractEvent e) {
+        private static void showNeowOptions(AbstractEvent e) {
             clearAllOptions(e);
             ArrayList<NeowRewardDef> rewardOptions = getRewardOptions();
 
             for (int i = 0; i < ITEMS_PER_PAGE; i++)
             {
-                int itemIndex = (pageNum * ITEMS_PER_PAGE) + i;
+                int itemIndex = (pageNumber * ITEMS_PER_PAGE) + i;
                 if (itemIndex >= rewardOptions.size())
                 {
                     break;
@@ -93,8 +96,6 @@ public class NeowRoomPatches {
                 NeowReward reward = defToReward(def);
                 e.roomEventText.addDialogOption(reward.optionLabel);
             }
-
-            System.out.println("*********** done like dinner");
 		}
 
         // screenNum = 0, 1 or 2 mean talk option
