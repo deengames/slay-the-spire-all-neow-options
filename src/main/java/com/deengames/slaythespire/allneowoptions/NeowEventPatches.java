@@ -9,6 +9,7 @@ import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePrefixPatch;
 import com.megacrit.cardcrawl.cards.CardGroup;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.localization.CharacterStrings;
 import com.megacrit.cardcrawl.neow.NeowEvent;
 import com.megacrit.cardcrawl.neow.NeowReward;
@@ -26,6 +27,7 @@ public class NeowEventPatches {
 
 	// from NeowRward.class, getRewardOptions method
 	private static ArrayList<NeowRewardDef> rewardOptions = new ArrayList<>();
+	private static int hpBonus = 0;
 
     @SpirePrefixPatch
 	// Pilfered from NeowEvent.dailyBlessing
@@ -35,6 +37,8 @@ public class NeowEventPatches {
 		{
 			event = __instance;
 			System.out.println("***************************** arrrr: " + event);
+			hpBonus = (int)(AbstractDungeon.player.maxHealth * 0.1F);
+
 			populateRewards();
 
 			for (int i = 0; i < rewardOptions.size(); i++)
@@ -57,7 +61,7 @@ public class NeowEventPatches {
 		// category 1
 		rewardOptions.add(new NeowRewardDef(NeowRewardType.THREE_SMALL_POTIONS, TEXT[5]));
         rewardOptions.add(new NeowRewardDef(NeowRewardType.RANDOM_COMMON_RELIC, TEXT[6]));
-        // rewardOptions.add(new NeowRewardDef(NeowRewardType.TEN_PERCENT_HP_BONUS, TEXT[7] + this.hp_bonus + " ]"));
+        rewardOptions.add(new NeowRewardDef(NeowRewardType.TEN_PERCENT_HP_BONUS, TEXT[7] + hpBonus + " ]"));
         rewardOptions.add(new NeowRewardDef(NeowRewardType.THREE_ENEMY_KILL, TEXT[28]));
         rewardOptions.add(new NeowRewardDef(NeowRewardType.HUNDRED_GOLD, TEXT[8] + 'd' + TEXT[9]));
 
@@ -68,7 +72,7 @@ public class NeowEventPatches {
         rewardOptions.add(new NeowRewardDef(NeowRewardType.THREE_RARE_CARDS, TEXT[12]));
 		rewardOptions.add(new NeowRewardDef(NeowRewardType.TWO_FIFTY_GOLD, TEXT[13] + TEXT[14])); 
         rewardOptions.add(new NeowRewardDef(NeowRewardType.TRANSFORM_TWO_CARDS, TEXT[15]));
-        //   rewardOptions.add(new NeowRewardDef(NeowRewardType.TWENTY_PERCENT_HP_BONUS, TEXT[16] + (this.hp_bonus * 2) + " ]")); 
+		rewardOptions.add(new NeowRewardDef(NeowRewardType.TWENTY_PERCENT_HP_BONUS, TEXT[16] + (hpBonus * 2) + " ]")); 
 
 		// category 3
 		rewardOptions.add(new NeowRewardDef(NeowRewardType.BOSS_RELIC, UNIQUE_REWARDS[0]));
