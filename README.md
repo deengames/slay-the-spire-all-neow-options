@@ -4,6 +4,12 @@
 
 The Neow event at the start of the game shows all possible Neow events.
 
+# TODO: FIXME
+
+- Picking [Talk] gives no options
+- Anything that requires picking a card throws
+- Max health and random potions works
+
 # Installation Instructions
 
 [Download from Steam Workshop](#).
