@@ -68,13 +68,12 @@ public class NeowEventPatches {
 					// 	 asRewards.add(i, new NeowReward(0));
 					// }
 
-					asRewards.add(new NeowReward(0));
 					System.out.println("@@@@@ DONE");
 				} else {
-					printException("asrewards is null", null);
+					printError("asrewards is null");
 				}
 			} else {
-				printException("rewards is null", null);
+				printError("rewards is null");
 			}
 		}
 	}
@@ -134,6 +133,10 @@ public class NeowEventPatches {
 			printException("exception on " + methodName, e);
 		}
 		return null;
+	}
+
+	private static void printError(String message) {
+		printException(message, null);
 	}
 
 	private static void printException(String message, Throwable e)
