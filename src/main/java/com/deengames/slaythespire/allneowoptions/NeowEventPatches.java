@@ -63,10 +63,12 @@ public class NeowEventPatches {
 				ArrayList<NeowReward> asRewards = (ArrayList<NeowReward>)result;
 				if (asRewards != null)
 				{
-					// for (int i = 0; i < rewardOptions.size(); i++)
-					// {
-					// 	 asRewards.add(i, new NeowReward(0));
-					// }
+					for (int i = 0; i < rewardOptions.size(); i++)
+					{
+						NeowRewardDef def = rewardOptions.get(i);
+						NeowReward reward = defToReward(def);
+						asRewards.add(reward);
+					}
 
 					System.out.println("@@@@@ DONE");
 				} else {
@@ -76,6 +78,14 @@ public class NeowEventPatches {
 				printError("rewards is null");
 			}
 		}
+	}
+
+	private static NeowReward defToReward(NeowRewardDef def)
+	{
+		NeowReward toReturn = new NeowReward(true);
+		toReturn.optionLabel = def.desc;
+		toReturn.type = def.type;
+		return toReturn;
 	}
 	
 	private static void populateRewards()
