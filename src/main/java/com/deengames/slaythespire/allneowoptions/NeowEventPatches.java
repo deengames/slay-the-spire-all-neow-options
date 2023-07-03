@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
+import com.evacipated.cardcrawl.modthespire.lib.SpireInsertPatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePrefixPatch;
@@ -28,7 +29,7 @@ public class NeowEventPatches {
 	public static final String[] UNIQUE_REWARDS = NeowReward.UNIQUE_REWARDS;
 
 	// from NeowRward.class, getRewardOptions method
-	private static ArrayList<NeowRewardDef> rewardOptions = new ArrayList<>();
+	public static ArrayList<NeowRewardDef> rewardOptions = new ArrayList<>();
 	private static int hpBonus = 0;
 
     @SpirePrefixPatch
@@ -38,7 +39,6 @@ public class NeowEventPatches {
 		if (__instance != event)
 		{
 			event = __instance;
-			System.out.println("***************************** arrrr: " + event);
 			hpBonus = (int)(AbstractDungeon.player.maxHealth * 0.1F);
 
 			populateRewards();
@@ -69,6 +69,14 @@ public class NeowEventPatches {
 						NeowReward reward = defToReward(def);
 						asRewards.add(reward);
 					}
+
+					__instance.roomEventText.clearRemainingOptions();
+					// __instance.roomEventText.updateDialogOption(0, ((NeowReward)asRewards.get(0)).optionLabel);
+					for (int i = 0; i < asRewards.size(); i++)
+					{
+						__instance.roomEventText.addDialogOption(asRewards.get(i).optionLabel);
+					}
+					setInstanceField(__instance, "screenNum", 3);
 
 					System.out.println("@@@@@ DONE");
 				} else {
@@ -116,6 +124,16 @@ public class NeowEventPatches {
 
 		// category 3
 		rewardOptions.add(new NeowRewardDef(NeowRewardType.BOSS_RELIC, UNIQUE_REWARDS[0]));
+	}
+
+	public static void setInstanceField(Object instance, String fieldName, Object value) {
+		try {
+			Field f1 = instance.getClass().getSuperclass().getDeclaredField(fieldName);
+			f1.setAccessible(true);
+			f1.set(instance, value);
+		} catch (Exception e) {
+			printException("error setting field " + fieldName + " to " + value, e);
+		}
 	}
 
 	public static Object getInstanceField(Object instance, String fieldName) {
