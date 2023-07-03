@@ -27,14 +27,18 @@ public class NeowRoomPatches {
     public static class AddButton {
 		@SpirePostfixPatch
 		public static void Postfix(NeowRoom room, boolean b) {
-			room.event.roomEventText.addDialogOption("[All Neow Options]");
+			room.event.roomEventText.addDialogOption("[All Neow Options 1]");
+            room.event.roomEventText.addDialogOption("[All Neow Options 2]");
 		}
 	}
 
+    // Prefix so it doesn't fire at the same time as the above post-fix one.
     @SpirePatch(clz = com.megacrit.cardcrawl.neow.NeowEvent.class, method = "buttonEffect")
 	public static class HandleButtonClick {
+
 		@SpirePrefixPatch
 		public static void Prefix(AbstractEvent e, int buttonPressed) {
+            System.out.println("**************** @@@@@@@@@@ ??????????????????");
 			try {
 				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
 				screenNumField.setAccessible(true);
@@ -42,7 +46,7 @@ public class NeowRoomPatches {
 
                 System.out.println("**************** bn=" + buttonPressed + " and sn=" + sn);
 
-                if ((buttonPressed == 1 || buttonPressed == 2) && acceptableScreenNum(sn))
+                if ((buttonPressed == 1 || buttonPressed == 2) && (acceptableScreenNum(sn) || sn == 3))
                 {
                     showNeowOptions(buttonPressed - 1, e);
                 }
@@ -67,8 +71,8 @@ public class NeowRoomPatches {
                 try {
                     e.roomEventText.removeDialogOption(0);
                 } catch (Exception eee) {
-                // repeat after me: "exceptions are for exceptional cases" ... :S
-                clearedAll = true;
+                    // repeat after me: "exceptions are for exceptional cases" ... :S
+                    clearedAll = true;
                 }
             } 
         }
@@ -88,8 +92,9 @@ public class NeowRoomPatches {
                 NeowRewardDef def = rewardOptions.get(i);
                 NeowReward reward = defToReward(def);
                 e.roomEventText.addDialogOption(reward.optionLabel);
-                System.out.println("?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!");
             }
+
+            System.out.println("*********** done like dinner");
 		}
 
         // screenNum = 0, 1 or 2 mean talk option
