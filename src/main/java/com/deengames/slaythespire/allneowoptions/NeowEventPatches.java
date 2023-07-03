@@ -1,5 +1,6 @@
 package com.deengames.slaythespire.allneowoptions;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class NeowEventPatches {
 
 	private static boolean ranUpdateLogic = false;
 
-    private static NeowEvent event; // current event
+    private static NeowEvent event = null; // current event
 	
 	public static final String[] TEXT = NeowReward.TEXT;
 	public static final String[] UNIQUE_REWARDS = NeowReward.UNIQUE_REWARDS;
@@ -52,10 +53,29 @@ public class NeowEventPatches {
 	@SpirePrefixPatch
 	private static void update(NeowEvent __instance)
 	{
-		if (!ranUpdateLogic)
+		if (event != null && !ranUpdateLogic)
 		{
 			ranUpdateLogic = true;
 			System.out.println("@@@@@ update");
+			Object result = getInstanceField(__instance, "rewards");
+			if (result != null)
+			{
+				ArrayList<NeowReward> asRewards = (ArrayList<NeowReward>)result;
+				if (asRewards != null)
+				{
+					// for (int i = 0; i < rewardOptions.size(); i++)
+					// {
+					// 	 asRewards.add(i, new NeowReward(0));
+					// }
+
+					asRewards.add(new NeowReward(0));
+					System.out.println("@@@@@ DONE");
+				} else {
+					printException("asrewards is null", null);
+				}
+			} else {
+				printException("rewards is null", null);
+			}
 		}
 	}
 	
@@ -89,6 +109,19 @@ public class NeowEventPatches {
 		rewardOptions.add(new NeowRewardDef(NeowRewardType.BOSS_RELIC, UNIQUE_REWARDS[0]));
 	}
 
+	public static Object getInstanceField(Object instance, String fieldName) {
+		try {
+			Field field = instance.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			return field.get(instance);
+		}
+		catch (Exception e)
+		{
+			printException("error accessing field " + fieldName, e);
+		}
+		return null;
+    }
+
 	private static Object invokeMethod(Object o, String methodName, Object ... args) {
 		try {
 			Method method = o.getClass().getDeclaredMethod(methodName);
@@ -96,10 +129,20 @@ public class NeowEventPatches {
 			Object result = method.invoke(event, args);
 			return result;
 		} catch (InvocationTargetException e) {
-			System.out.println("*** All Neow Options exception on " + methodName + ", please report to dev: " + e.getTargetException());
+			printException("exception on " + methodName, e.getTargetException());
 		} catch (Exception e) {
-			System.out.println("*** All Neow Options exception on " + methodName + ", please report to dev: " + e);
+			printException("exception on " + methodName, e);
 		}
 		return null;
+	}
+
+	private static void printException(String message, Throwable e)
+	{
+		String eMessage = "";
+		if (e != null)
+		{
+			eMessage = e.toString();
+		}
+		System.out.println("*** All Neow Options: " + message + ", please report to dev: " + eMessage);
 	}
 }
