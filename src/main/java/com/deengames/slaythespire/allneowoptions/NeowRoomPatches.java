@@ -1,19 +1,29 @@
 package com.deengames.slaythespire.allneowoptions;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePrefixPatch;
 import com.megacrit.cardcrawl.core.Settings;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.events.AbstractEvent;
-import com.megacrit.cardcrawl.events.RoomEventDialog;
 import com.megacrit.cardcrawl.neow.NeowEvent;
+import com.megacrit.cardcrawl.neow.NeowReward;
+import com.megacrit.cardcrawl.neow.NeowReward.NeowRewardDef;
+import com.megacrit.cardcrawl.neow.NeowReward.NeowRewardType;
 import com.megacrit.cardcrawl.neow.NeowRoom;
 
 public class NeowRoomPatches {
+    
+    public static final String[] UNIQUE_REWARDS = NeowReward.UNIQUE_REWARDS;
+    public static final String[] TEXT = NeowReward.TEXT;
+    public static final int ITEMS_PER_PAGE = 10;
+
+    private static int hpBonus = (int)(AbstractDungeon.player.maxHealth * 0.1F);
+
     @SpirePatch(clz = com.megacrit.cardcrawl.neow.NeowRoom.class, method = SpirePatch.CONSTRUCTOR, paramtypez = boolean.class)
-	
     public static class AddButton {
 		@SpirePostfixPatch
 		public static void Postfix(NeowRoom room, boolean b) {
@@ -35,39 +45,57 @@ public class NeowRoomPatches {
 			}
 		}
 
+        private static NeowReward defToReward(NeowRewardDef def)
+        {
+            NeowReward toReturn = new NeowReward(true);
+            toReturn.optionLabel = def.desc;
+            toReturn.type = def.type;
+            return toReturn;
+        }
+
         @SpirePostfixPatch
         public static void Postfix(AbstractEvent e, int buttonPressed) {
-            boolean clearedAll = false;
-
-			try {
-				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
-				screenNumField.setAccessible(true);
-				int sn = screenNumField.getInt(e);
-                System.out.println("***** postfix ***: e=" + e + ", bn=" + buttonPressed + ", umm..." + sn);
+            System.out.println("******* postfix: " + buttonPressed);
+            try {
+                Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
+                screenNumField.setAccessible(true);
+                int sn = screenNumField.getInt(e);
+                System.out.println("PPOSTFIX: sn=" + sn);
                 
-                // quick, cheap, and dirty. real dirty.
-                while (!clearedAll)
-                {
-                    try {
-                        e.roomEventText.removeDialogOption(0);
-                    } catch (Exception eee) {
-                    // repeat after me: "exceptions are for exceptional cases" ... :S
-                    clearedAll = true;
-                    }
-                } 
+                boolean clearedAll = false;
 
-                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
-                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
-                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
-                e.roomEventText.addDialogOption("Welcome to MOAR MEOW");
-			
+                if ((buttonPressed == 1 || buttonPressed == 2) && acceptableScreenNum(sn))
+                {
+                    // quick, cheap, and dirty. real dirty.
+                    while (!clearedAll)
+                    {
+                        try {
+                            e.roomEventText.removeDialogOption(0);
+                        } catch (Exception eee) {
+                        // repeat after me: "exceptions are for exceptional cases" ... :S
+                        clearedAll = true;
+                        }
+                    } 
+
+                    ArrayList<NeowRewardDef> rewardOptions = getRewardOptions();
+                    int pageNum = buttonPressed == 1 ? 0 : 1;
+
+                    for (int i = 0; i < ITEMS_PER_PAGE; i++)
+                    {
+                        int itemIndex = (pageNum * ITEMS_PER_PAGE) + i;
+                        NeowRewardDef def = rewardOptions.get(i);
+                        NeowReward reward = defToReward(def);
+                        e.roomEventText.addDialogOption(reward.optionLabel);
+                    }
+                }
             } catch (Exception ex) {
-				ex.printStackTrace();
-			}
+                ex.printStackTrace();
+            }
 		}
 
         // screenNum = 0, 1 or 2 mean talk option
 	    // 10 is only ok for trial (Custom Mode) I think
+        // stoeln from BetterRewardsMod
         private static boolean acceptableScreenNum(int sn) {
             return sn == 0 || sn == 1 || sn == 2 || (Settings.isTrial && sn == 10);
         }
@@ -84,6 +112,40 @@ public class NeowRoomPatches {
                 // calls openMap, which is patched to start a BetterRewards
                 screenNumField.setInt(e, 99);
             }
+        }
+
+        private static ArrayList<NeowRewardDef> getRewardOptions()
+        {
+            ArrayList<NeowRewardDef> rewardOptions = new ArrayList<>();
+
+            // category 0
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.THREE_CARDS, TEXT[0]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.ONE_RANDOM_RARE_CARD, TEXT[1]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.REMOVE_CARD, TEXT[2]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.UPGRADE_CARD, TEXT[3]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.TRANSFORM_CARD, TEXT[4]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.RANDOM_COLORLESS, TEXT[30]));
+
+            // category 1
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.THREE_SMALL_POTIONS, TEXT[5]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.RANDOM_COMMON_RELIC, TEXT[6]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.TEN_PERCENT_HP_BONUS, TEXT[7] + hpBonus + " ]"));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.THREE_ENEMY_KILL, TEXT[28]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.HUNDRED_GOLD, TEXT[8] + 'd' + TEXT[9]));
+
+            // category 2
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.RANDOM_COLORLESS_2, TEXT[31]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.REMOVE_TWO, TEXT[10])); 
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.ONE_RARE_RELIC, TEXT[11]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.THREE_RARE_CARDS, TEXT[12]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.TWO_FIFTY_GOLD, TEXT[13] + TEXT[14])); 
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.TRANSFORM_TWO_CARDS, TEXT[15]));
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.TWENTY_PERCENT_HP_BONUS, TEXT[16] + (hpBonus * 2) + " ]")); 
+
+            // category 3
+            rewardOptions.add(new NeowRewardDef(NeowRewardType.BOSS_RELIC, UNIQUE_REWARDS[0]));
+
+            return rewardOptions;
         }
 	}
 }
