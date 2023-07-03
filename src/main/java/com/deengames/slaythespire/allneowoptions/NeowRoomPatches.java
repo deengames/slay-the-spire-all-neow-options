@@ -36,8 +36,8 @@ public class NeowRoomPatches {
     @SpirePatch(clz = com.megacrit.cardcrawl.neow.NeowEvent.class, method = "buttonEffect")
 	public static class HandleButtonClick {
 
-		@SpirePrefixPatch
-		public static void Prefix(AbstractEvent e, int buttonPressed) {
+		@SpirePostfixPatch
+		public static void Postfix(AbstractEvent e, int buttonPressed) {
             System.out.println("**************** @@@@@@@@@@ ??????????????????");
 			try {
 				Field screenNumField = NeowEvent.class.getDeclaredField("screenNum");
